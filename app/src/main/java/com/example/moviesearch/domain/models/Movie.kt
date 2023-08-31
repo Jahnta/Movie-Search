@@ -1,4 +1,4 @@
-package com.example.moviesearch
+package com.example.moviesearch.domain.models
 
 data class Movie(val id: String,
                  val resultType: String,
