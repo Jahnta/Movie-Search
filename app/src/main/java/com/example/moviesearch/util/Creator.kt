@@ -7,9 +7,10 @@ import com.example.moviesearch.data.network.RetrofitNetworkClient
 import com.example.moviesearch.domain.api.MoviesInteractor
 import com.example.moviesearch.domain.api.MoviesRepository
 import com.example.moviesearch.domain.impl.MoviesInteractorImpl
-import com.example.moviesearch.presentation.MoviesSearchController
-import com.example.moviesearch.presentation.PosterController
-import com.example.moviesearch.ui.movies.MoviesAdapter
+import com.example.moviesearch.presentation.movies.MoviesSearchPresenter
+import com.example.moviesearch.presentation.poster.PosterPresenter
+import com.example.moviesearch.presentation.movies.MoviesView
+import com.example.moviesearch.presentation.poster.PosterView
 
 object Creator {
     private fun getMoviesRepository(context: Context): MoviesRepository {
@@ -20,11 +21,23 @@ object Creator {
         return MoviesInteractorImpl(getMoviesRepository(context))
     }
 
-    fun provideMoviesSearchController(activity: Activity, adapter: MoviesAdapter) : MoviesSearchController {
-        return MoviesSearchController(activity, adapter)
+    fun provideMoviesSearchPresenter(
+        moviesView: MoviesView,
+        context: Context
+    ) : MoviesSearchPresenter {
+        return MoviesSearchPresenter(
+            view = moviesView,
+            context =context
+        )
     }
 
-    fun providePosterController(activity: Activity): PosterController {
-        return PosterController(activity)
+    fun providePosterPresenter(
+        posterView: PosterView,
+        imageUrl: String
+    ): PosterPresenter {
+        return PosterPresenter(
+            view = posterView,
+            imageUrl = imageUrl
+        )
     }
 }
