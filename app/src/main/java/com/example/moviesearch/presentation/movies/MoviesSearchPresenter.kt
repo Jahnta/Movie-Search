@@ -7,6 +7,7 @@ import android.widget.Toast
 import com.example.moviesearch.R
 import com.example.moviesearch.domain.api.MoviesInteractor
 import com.example.moviesearch.domain.models.Movie
+import com.example.moviesearch.domain.models.MoviesState
 import com.example.moviesearch.ui.movies.MoviesAdapter
 import com.example.moviesearch.util.Creator
 
@@ -33,37 +34,39 @@ class MoviesSearchPresenter(
 
     private fun searchRequest(newSearchText: String) {
         if (newSearchText.isNotEmpty()) {
+            view.render(
+                MoviesState.Loading
+            )
 
-            view.showPlaceholderMessage(false)
-            view.showMoviesList(false)
-            view.showProgressBar(true)
-
-            moviesInteractor.searchMovies(
-                newSearchText,
-                object : MoviesInteractor.MovieConsumer {
-                    override fun consume(foundMovies: List<Movie>?, errorMessage: String?) {
-                        handler.post {
-                            view.showProgressBar(false)
-                            if (foundMovies != null) {
-                                movies.clear()
-                                movies.addAll(foundMovies)
-                                view.updateMovieList(movies)
-                                view.showMoviesList(true)
-                            }
-                            if (errorMessage != null) {
-                                showMessage(
-                                    context.getString(R.string.something_went_wrong),
-                                    errorMessage
+            moviesInteractor.searchMovies(newSearchText, object : MoviesInteractor.MovieConsumer {
+                override fun consume(foundMovies: List<Movie>?, errorMessage: String?) {
+                    handler.post {
+                        if (foundMovies != null) {
+                            movies.clear()
+                            movies.addAll(foundMovies)
+                        }
+                        when {
+                            errorMessage != null -> {
+                                view.render(
+                                    MoviesState.Error(context.getString(R.string.something_went_wrong))
                                 )
-                            } else if (movies.isEmpty()) {
-                                showMessage(context.getString(R.string.nothing_found), "")
-                            } else {
-                                hideMessage()
+                            }
+
+                            movies.isEmpty() -> {
+                                view.render(
+                                    MoviesState.Empty(context.getString(R.string.nothing_found))
+                                )
+                            }
+
+                            else -> {
+                                view.render(
+                                    MoviesState.Content(movies)
+                                )
                             }
                         }
                     }
                 }
-            )
+            })
         }
     }
 
@@ -77,22 +80,4 @@ class MoviesSearchPresenter(
         handler.removeCallbacks(searchRunnable)
     }
 
-
-    private fun showMessage(text: String, additionalMessage: String) {
-        if (text.isNotEmpty()) {
-            view.showPlaceholderMessage(true)
-            movies.clear()
-            view.updateMovieList(movies)
-            view.changePlaceholderText(text)
-            if (additionalMessage.isNotEmpty()) {
-                view.showMessage(additionalMessage)
-            }
-        } else {
-            view.showPlaceholderMessage(false)
-        }
-    }
-
-    private fun hideMessage() {
-        view.showPlaceholderMessage(false)
-    }
 }
